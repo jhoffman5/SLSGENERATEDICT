@@ -5,19 +5,25 @@ var readline = require('readline');
 const { GetObjectCommand, PutObjectCommand, S3Client } = require('@aws-sdk/client-s3')
 const client = new S3Client() // Pass in opts to S3 if necessary
 const bucket = "w3.hoffmanjoshua.net";
-const dictFile = "wordl/dictionaryTree.json";
-const allWordsFile = "wordl/allWords.txt";
-const guessWordsFile = "wordl/guessWords.txt";
 
 module.exports.generateTree = async (event) => {
   try{
-    var lengthTree = event.pathParameters.length;
+    var length = event.pathParameters.length;
+
+    var allWords = (await getObject(bucket, `wordl/all${length}LetterWords.txt`)).split(/\r?\n/);
+    var allWordsTree = generateTreeOfAllWordsFromList(allWords);
+
+    var guessWords = (await getObject(bucket, `wordl/guess${length}LetterWords.txt`)).split(/\r?\n/);
+    var guessWordsTree = generateTreeOfAllWordsFromList(guessWords);
+
+    await putObject(bucket, `wordl/all${length}LetterWordsTree.json`, JSON.stringify(allWordsTree));
+    await putObject(bucket, `wordl/guess${length}LetterWordsTree.json`, JSON.stringify(guessWordsTree));
 
     return {
       statusCode: 200,
       body: JSON.stringify(
         {
-          message: "Dictionary successfully generated!",
+          message: "Dictionaries successfully generated!",
           input: event
         },
         null,
@@ -39,6 +45,33 @@ module.exports.generateTree = async (event) => {
     };
   }
 };
+
+function generateTreeOfAllWordsFromList (list) {
+  var tree = {};
+
+  list.forEach(word => {
+    word = word.trim();
+
+    if(word)
+    {
+      var branch = tree;
+      for(var charIndex in word)
+      {
+        if(charIndex == word.length - 1)
+        {
+          branch[word.charAt(charIndex)] = true;
+        }
+        else if(!branch[word.charAt(charIndex)])
+        {
+          branch[word.charAt(charIndex)] = {}
+        }
+        branch = branch[word.charAt(charIndex)];
+      }
+    }
+  });
+
+  return tree;
+}
 
 function getObject (Bucket, Key) {
   return new Promise(async (resolve, reject) => {
