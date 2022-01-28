@@ -104,7 +104,7 @@ module.exports.generateDictTxtFileByLength = async (event) => {
       });
     
       file.on('close', async function() {
-        var response = await putObject(bucket, `wordl/${length}letterwords.txt`, words)
+        var response = await putObject(bucket, `wordl/all${length}LetterWords.txt`, words)
       })
 
       return {
