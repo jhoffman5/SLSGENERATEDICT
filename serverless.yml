@@ -1,0 +1,21 @@
+service: SLSWORDLGENERATEDICT
+frameworkVersion: '2 || 3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: '20201221'
+
+functions:
+  generateTree:
+    handler: handler.generateTree
+    events:
+      - httpApi:
+          path: /
+          method: get
+  generateDictTxtFileByLength:
+    handler: handler.generateDictTxtFileByLength
+    events:
+      - httpApi: 
+          path: /length/{length}
+          method: get
