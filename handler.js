@@ -4,20 +4,20 @@ var readline = require('readline');
 
 const { GetObjectCommand, PutObjectCommand, S3Client } = require('@aws-sdk/client-s3')
 const client = new S3Client() // Pass in opts to S3 if necessary
-const bucket = "w3.hoffmanjoshua.net";
+const bucket = "567dle";
 
 module.exports.generateTree = async (event) => {
   try{
     var length = event.pathParameters.length;
 
-    var allWords = (await getObject(bucket, `wordl/all${length}LetterWords.txt`)).split(/\r?\n/);
+    var allWords = (await getObject(bucket, `${length}/allWords.txt`)).split(/\r?\n/);
     var allWordsTree = generateTreeOfAllWordsFromList(allWords);
 
-    var guessWords = (await getObject(bucket, `wordl/guess${length}LetterWords.txt`)).split(/\r?\n/);
+    var guessWords = (await getObject(bucket, `${length}/guessWords.txt`)).split(/\r?\n/);
     var guessWordsTree = generateTreeOfAllWordsFromList(guessWords);
 
-    await putObject(bucket, `wordl/all${length}LetterWordsTree.json`, JSON.stringify(allWordsTree));
-    await putObject(bucket, `wordl/guess${length}LetterWordsTree.json`, JSON.stringify(guessWordsTree));
+    await putObject(bucket, `${length}/allWordsTree.json`, JSON.stringify(allWordsTree));
+    await putObject(bucket, `${length}/guessWordsTree.json`, JSON.stringify(guessWordsTree));
 
     return {
       statusCode: 200,
@@ -50,7 +50,7 @@ function generateTreeOfAllWordsFromList (list) {
   var tree = {};
 
   list.forEach(word => {
-    word = word.trim();
+    word = word.trim().toLowerCase();
 
     if(word)
     {
@@ -132,12 +132,12 @@ module.exports.generateDictTxtFileByLength = async (event) => {
         line = line.trim();
         if(line.length == length)
         {
-          words += line + "\n";
+          words += line.toLowerCase() + "\n";
         }
       });
     
       file.on('close', async function() {
-        var response = await putObject(bucket, `wordl/all${length}LetterWords.txt`, words)
+        var response = await putObject(bucket, `${length}/allWords.txt`, words)
       })
 
       return {
